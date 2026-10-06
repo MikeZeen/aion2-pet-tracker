@@ -4,7 +4,7 @@ import { useToasts } from './useToasts'
 import { t } from '../i18n'
 
 // "owner/name" of the GitHub repository whose releases are checked. Empty disables the check.
-const GITHUB_REPO = ''
+const GITHUB_REPO = 'MikeZeen/aion2-pet-tracker'
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000
 const TOAST_MS = 10_000
 
