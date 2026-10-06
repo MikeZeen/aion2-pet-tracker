@@ -20,8 +20,10 @@ Message types (integers little-endian):
           target (varint) | 4 bytes | x, y, z (floats)
     2937, 2837, 1a37  entity moves: entity (varint) | 1 byte (2 for 1a37) |
           x, y, z (floats); never your own character
-    398a  character selected: len (u8) | name
-    3336  character enters the world: entity (varint) | 5 bytes | len | name
+    398a  character selected: len (u8) | name; also sent for other players,
+          e.g. legion members logging in
+    3336  your character enters the world: entity (varint) | 5 bytes |
+          len | name
 """
 
 import struct
@@ -329,12 +331,10 @@ def decode_character_selected(message):
     return message[3 : 3 + message[2]].decode("utf-8")
 
 
-def decode_character_enters(message, name_bytes):
-    """3336 message -> its entity if it's the named character, else None."""
+def decode_character_enters(message):
+    """3336 message -> (entity, character name bytes)."""
     entity, i = read_varint(message, 2)
-    if message[i + 5 : i + 6 + len(name_bytes)] == bytes([len(name_bytes)]) + name_bytes:
-        return entity
-    return None
+    return entity, message[i + 6 : i + 6 + message[i + 5]]
 
 
 def own_entity(message, name_bytes):
@@ -392,6 +392,7 @@ class PositionTracker:
 
     def __init__(self, character=None):
         self.name = character.encode("utf-8") if character else None
+        self.selected = set()  # names from 398a not yet seen entering (3336)
         self.own = None
         self.own_pos = None  # (time, x, y)
         self.spawns = {}  # entity -> (time, x, y)
@@ -402,13 +403,17 @@ class PositionTracker:
     def feed(self, time, kind, message):
         try:
             if kind == CHARACTER_SELECTED:
-                name = decode_character_selected(message).encode("utf-8")
-                if name != self.name:
-                    self.name, self.own, self.own_pos = name, None, None
-                yield {"type": "character", "name": name.decode("utf-8")}
-            elif kind == CHARACTER_ENTERS and self.name:
-                if (entity := decode_character_enters(message, self.name)) is not None:
+                # Also sent for others (e.g. legion members logging in), so
+                # it only names a candidate until that character enters.
+                self.selected.add(decode_character_selected(message).encode("utf-8"))
+            elif kind == CHARACTER_ENTERS:
+                entity, name = decode_character_enters(message)
+                if name in self.selected or name == self.name:
+                    self.selected.clear()
+                    if name != self.name:
+                        self.name, self.own_pos = name, None
                     self.own = entity
+                    yield {"type": "character", "name": name.decode("utf-8")}
             if self.own is None and self.name and self.name in message:
                 self.own = own_entity(message, self.name)
             if kind == MONSTER_SPAWN:
