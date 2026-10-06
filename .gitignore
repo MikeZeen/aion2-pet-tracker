@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+build/
+release/
+release-dev/
+src-tauri/target/
+src-tauri/gen/
+src-tauri/binaries/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Packet captures and local research
+captures/
+research/
+*.pcap
+*.pcapng
+*.markers.json
+
+# Logs and local env
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.local
+.env
+.env.*
+!.env.devbuild
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+
+# AI assistants
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.cursor/
+.cursorrules
+.cursorignore
+.aider*
+.continue/
+.codeium/
+.windsurf/
+.windsurfrules
+.copilot/
+.github/copilot-instructions.md
+.gemini/
+GEMINI.md
+.codex/

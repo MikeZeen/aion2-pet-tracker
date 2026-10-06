@@ -1,0 +1,75 @@
+:root {
+  --bg: #f6f5f2;
+  --panel: #ffffff;
+  --border: #ddd8cf;
+  --text: #2a241c;
+  --muted: #7a7265;
+  --accent: #a8702f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1a16;
+    --panel: #272420;
+    --border: #3b362e;
+    --text: #efe8dc;
+    --muted: #a69d8d;
+    --accent: #d9944a;
+  }
+}
+
+/* Desktop overlay: transparent glass styled by the Color and Opacity settings. */
+html.overlay {
+  --panel: rgba(var(--hud-box, 18, 20, 26), var(--hud-opacity, 0.6));
+  --bg: rgba(0, 0, 0, calc(var(--hud-opacity, 0.6) * 0.25));
+  --border: rgba(var(--tint, 255, 255, 255), 0.25);
+  --text: rgba(255, 255, 255, 0.95);
+  --muted: rgba(255, 255, 255, 0.7);
+  --accent: rgba(var(--tint-hl, 255, 255, 255), 0.22);
+  background: transparent;
+}
+
+html.overlay,
+html.overlay body {
+  background: transparent;
+  overflow: hidden;
+}
+
+html.overlay body {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+}
+
+html.overlay .panel,
+html.overlay .titlebar {
+  border-radius: 0.6rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+html.overlay input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+html.overlay option {
+  background: #22262c;
+  color: #fff;
+}
+
+html.overlay ::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+#app {
+  min-height: 100vh;
+}

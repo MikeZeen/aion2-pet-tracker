@@ -1,0 +1,27 @@
+{
+  "name": "aion2-pet-tracker",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "build:watcher": "python -m PyInstaller --onefile --noconsole --name watcher-x86_64-pc-windows-msvc --distpath src-tauri/binaries --workpath build/pyinstaller-work --specpath build/pyinstaller-work --collect-submodules scapy.layers --hidden-import diagnose scripts/watcher.py",
+    "dist": "npm run build:watcher && tauri build && node scripts/copy-release.mjs release/win-unpacked",
+    "dist:dev": "npm run build:watcher && tauri build --features devtools --config src-tauri/tauri.devbuild.conf.json && node scripts/copy-release.mjs release-dev/win-unpacked"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.12.1",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^8.3.0",
+    "vue": "^3.5.42"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.12.1",
+    "@tauri-apps/plugin-global-shortcut": "^2.4.0",
+    "@tauri-apps/plugin-opener": "^2.7.0"
+  }
+}

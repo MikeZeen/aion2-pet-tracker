@@ -1,0 +1,8 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Aion 2 Pet Tracker Dev",
+  "identifier": "local.aion2.pettracker.dev",
+  "build": {
+    "beforeBuildCommand": "npm run build -- --mode devbuild"
+  }
+}
