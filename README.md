@@ -2,47 +2,46 @@
 
 A small always-on-top overlay for Aion 2 that tracks your pet soul collection while you play.
 
+![Pets in Immortal Isle panel](docs/screenshots/pets-in-region.png)
+
+> **Work in progress:** bugs can happen. A soul might not be counted, or the pet list might be wrong for your area. I'm constantly updating the tracker, and the app tells you when a new version is available.
+
+## Features
+
 - **Automatic progress:** reads your pet levels and soul counts from the game at login, and counts every soul you pick up after that.
 - **Soul toasts:** each soul you pick up shows a short notification with the pet's progress toward its next level.
 - **Pets in your area:** lists the pets you can farm where you are right now, with your progress on each.
-- **Click-through:** the overlay never blocks the game. Press `Ctrl+Shift+M` to open the settings.
+- **Click-through:** the overlay never blocks the game.
 - **Languages:** English, Deutsch, Français, Español, Português, Русский, 한국어, 日本語 and 中文 (繁體), including translated pet names. The system language is used by default.
 
-The tracker only reads network traffic passively. It doesn't modify the game, inject anything or send any data. Its only connection is the update check against GitHub.
+## Getting started
 
-## Screenshots
-
-**Pets in your area:** the overlay lists the pets of the area you're in, with your level and soul progress on each.
-
-![Pets in Immortal Isle panel](docs/screenshots/pets-in-region.png)
-
-**Soul loot:** picking up a soul shows a toast with the pet's progress toward its next level.
-
-![Soul obtained toast](docs/screenshots/soul-loot.png)
-
-**Settings:** press `Ctrl+Shift+M` to change the language, size, color and opacity, or to diagnose the network.
-
-![Settings panel](docs/screenshots/settings.png)
-
-## Work in progress
-
-This tracker is still in development, so bugs can happen: a soul might not be counted, or the pet list might be wrong for your area. I'm constantly updating it, and the app tells you when a new version is available.
-
-## Requirements
+### Requirements
 
 - Windows 10 or 11
 - [Npcap](https://npcap.com), installed with the default options
 - Administrator rights, which packet capture needs. The app asks for them on launch.
 
-## Usage
+### Installation
 
-1. Unzip the release anywhere and run `aion2-pet-tracker.exe`. Keep `watcher.exe` in the same folder.
-2. Start Aion 2 and log in. Your pet progress syncs as soon as you enter the world.
-3. Press `Ctrl+Shift+M` to switch between the overlay and the settings (language, size, color, opacity, network diagnostics).
+1. Download the latest zip from the [Releases](https://github.com/MikeZeen/aion2-pet-tracker/releases) page.
+2. Unzip it anywhere. Keep `aion2-pet-tracker.exe` and `watcher.exe` in the same folder.
+3. Run `aion2-pet-tracker.exe`.
 
-If nothing is detected, use **Settings → Diagnose network**. It listens on every network adapter for 20 seconds and reports where the game traffic is. This helps with VPNs and ping-reduction tools.
+There's no installer. To remove the tracker, delete the folder.
 
-### Pets in your area: which maps are covered
+## Using the tracker
+
+1. Start the tracker, then start Aion 2 and log in. Your pet progress syncs as soon as you enter the world.
+2. Play as usual. The overlay shows the pets of your current area, and every soul you pick up appears as a toast:
+
+   ![Soul obtained toast](docs/screenshots/soul-loot.png)
+
+3. Press `Ctrl+Shift+M` to switch between the overlay and the settings, where you can change the language, size, color and opacity:
+
+   ![Settings panel](docs/screenshots/settings.png)
+
+### Which maps are covered
 
 How precise the pet list is depends on the map:
 
@@ -53,6 +52,22 @@ How precise the pet list is depends on the map:
 | Abyss and everywhere else | *Pets nearby*: only the pets of monsters around you that the tracker knows. |
 
 The Abyss works differently because the bundled data has no Abyss monsters. The tracker learns them while you play: when you pick up a soul, it remembers which monster dropped it, and from then on that monster's pet appears in the list whenever the monster is near you. The list starts empty in the Abyss ("No pets known for the monsters here yet") and fills in as you collect souls there. These learned links are saved on your computer and kept between sessions.
+
+## Troubleshooting
+
+**Nothing is detected.** Open the settings with `Ctrl+Shift+M` and click **Diagnose network**. Keep playing while it runs: it listens on every network adapter for 20 seconds and reports where the game traffic is, or why there's none. This helps with VPNs and ping-reduction tools.
+
+**The progress is wrong.** Log out and back in to resync from the game. If it stays wrong, use **Clear saved pet progress** in the settings, then log in again.
+
+## Privacy and safety
+
+The tracker only reads network traffic passively. It doesn't modify the game, inject anything or send any data. Its only connection is the update check against GitHub.
+
+## Disclaimer
+
+This is an unofficial fan project, not affiliated with or endorsed by NCSOFT. Aion 2 and all related names and artwork belong to their respective owners.
+
+---
 
 ## Development
 
@@ -92,10 +107,6 @@ Both commands bundle the watcher into a standalone `watcher.exe` with PyInstalle
 | `scripts/watcher.py` | Packet capture; sends events to the app as JSON lines |
 | `scripts/diagnose.py` | Network diagnostics |
 
-## AI Usage
+### AI usage
 
 AI was used during development, mainly for the network analysis: working out the game's message framing and the packets for soul pickups, the pet collection, positions and areas from recorded captures. The decoded protocol is documented in `scripts/protocol.py`.
-
-## Disclaimer
-
-This is an unofficial fan project, not affiliated with or endorsed by NCSOFT. Aion 2 and all related names and artwork belong to their respective owners.
