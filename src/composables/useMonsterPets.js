@@ -31,6 +31,16 @@ export function petOfMonster(monsterId) {
   return monsterPets[monsterId] ?? learned[monsterId] ?? null
 }
 
+// Bundled data only: learned links are guesses and must not teach other guesses.
+export function bundledPetOfMonster(monsterId) {
+  if (monsterId == null) return null
+  return monsterPets[monsterId] ?? null
+}
+
+export function isLearnedPet(petCode) {
+  return Object.values(learned).includes(petCode)
+}
+
 export function learnMonsterPet(monsterId, petCode) {
   if (monsterId == null || !petCode || monsterPets[monsterId]) return
   learned[monsterId] = petCode

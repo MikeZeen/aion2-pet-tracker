@@ -17,26 +17,37 @@ from scapy.all import IP, TCP, Raw, rdpcap, sniff
 from protocol import GAME_PORT, AreaTracker, PositionTracker, ServerStream, SoulTracker
 
 
+SOURCE_TIMEOUT = 10.0  # seconds of silence before another adapter may take over
+
+
 def emit(obj):
     print(json.dumps(obj), flush=True)
 
 
 def run(iface, replay_path, character=None):
-    # One stream per connection: a login can open a new one.
+    # One stream per adapter and connection: a login can open a new one.
     streams = {}
     trackers = [SoulTracker(), AreaTracker(), PositionTracker(character)]
     ready = [False]
+    # VPNs and ping tools can show the same traffic on two adapters; only the
+    # adapter that carried game messages last is used, so nothing counts twice.
+    source = {"iface": None, "time": None}
 
     def handle(pkt):
         if IP not in pkt or TCP not in pkt or pkt[TCP].sport != GAME_PORT:
             return
-        connection = pkt[TCP].dport
+        adapter = getattr(pkt, "sniffed_on", None)
+        now = float(pkt.time)
+        if source["time"] is not None and adapter != source["iface"] and now - source["time"] < SOURCE_TIMEOUT:
+            return
+        connection = (adapter, pkt[TCP].dport)
         if "S" in str(pkt[TCP].flags):
             streams.pop(connection, None)
         if Raw not in pkt:
             return
         stream = streams.setdefault(connection, ServerStream())
-        for t, kind, message in stream.feed(pkt[TCP].seq, float(pkt.time), bytes(pkt[Raw].load)):
+        for t, kind, message in stream.feed(pkt[TCP].seq, now, bytes(pkt[Raw].load)):
+            source["iface"], source["time"] = adapter, now
             if not ready[0]:
                 ready[0] = True
                 emit({"type": "ready"})

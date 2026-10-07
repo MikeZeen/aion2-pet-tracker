@@ -1,7 +1,7 @@
 import { reactive } from 'vue'
 import { useItemDictionary } from './useItemDictionary'
 import { useLocation } from './useLocation'
-import { learnMonsterPet, petOfMonster } from './useMonsterPets'
+import { bundledPetOfMonster, learnMonsterPet, petOfMonster } from './useMonsterPets'
 import { useSettings } from './useSettings'
 import { useSoulCounts } from './useSoulCounts'
 import { useToasts } from './useToasts'
@@ -22,6 +22,11 @@ const state = reactive({
 
 let unsubscribe = null
 
+// A hot-reloaded copy of this module subscribes again; drop the old listener.
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => unsubscribe?.())
+}
+
 const { pushToast, pushSoulToast } = useToasts()
 
 function grantSouls(petCode, amount, monsterId = null) {
@@ -36,9 +41,11 @@ function handleLoot({ itemId, monsterId, maxed, count = 1 }) {
   const { get: getItem, setItem } = useItemDictionary()
 
   // Souls of a maxed pet carry no pet id; the source monster names it.
+  // A pet that isn't maxed here means the monster link is wrong (e.g. an
+  // Abyss monster dropping several pets), so nothing is counted.
   if (maxed) {
     const petCode = petOfMonster(monsterId)
-    if (petCode) grantSouls(petCode, count)
+    if (petCode && useSoulCounts().isMaxed(petCode)) grantSouls(petCode, count)
     return
   }
   if (petIds[itemId]) {
@@ -48,7 +55,7 @@ function handleLoot({ itemId, monsterId, maxed, count = 1 }) {
 
   // A pet newer than the bundled data: learn it from the source monster.
   const item = getItem(itemId)
-  const fromMonster = !item ? petOfMonster(monsterId) : null
+  const fromMonster = !item ? bundledPetOfMonster(monsterId) : null
   if (fromMonster) {
     setItem(itemId, { name: englishPetName(fromMonster), kind: 'soul', petCode: fromMonster })
     grantSouls(fromMonster, count)

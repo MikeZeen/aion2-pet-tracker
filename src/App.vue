@@ -3,6 +3,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue'
 import HudStatus from './components/HudStatus.vue'
 import ItemDictionary from './components/ItemDictionary.vue'
 import LocationPets from './components/LocationPets.vue'
+import MyPets from './components/MyPets.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
 import ToastLayer from './components/ToastLayer.vue'
 import UpdateDialog from './components/UpdateDialog.vue'
@@ -75,6 +76,7 @@ onUnmounted(() => unsubscribers.forEach((off) => off()))
 
         <SettingsPanel />
         <ItemDictionary />
+        <MyPets />
       </div>
 
       <UpdateDialog />

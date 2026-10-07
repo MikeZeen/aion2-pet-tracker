@@ -277,9 +277,10 @@ class SoulTracker:
 
     def _monster(self, now):
         recent = [s for t, s in self.pickups if now - self.PICKUP_SECONDS <= t <= now]
-        if not recent:
+        templates = {self.spawns.get(self.sources.get(serial)) for serial in recent}
+        if len(templates) != 1 or None in templates:
             return None
-        return self.spawns.get(self.sources.get(recent[-1]))
+        return templates.pop()
 
 
 class AreaTracker:

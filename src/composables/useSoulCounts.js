@@ -95,6 +95,10 @@ export function useSoulCounts() {
     return describeGain(before, entry.total)
   }
 
+  function isMaxed(petCode) {
+    return (state[petCode]?.total ?? 0) >= MAX_TOTAL
+  }
+
   // Level plus the souls collected within that level, as the game reports it.
   function setProgress(petCode, level, count) {
     const entry = ensure(petCode)
@@ -108,5 +112,5 @@ export function useSoulCounts() {
     for (const code of Object.keys(state)) delete state[code]
   }
 
-  return { state, petInfo, add, setProgress, clearAll }
+  return { state, petInfo, add, isMaxed, setProgress, clearAll }
 }
