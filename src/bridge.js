@@ -1,7 +1,7 @@
 // Exposes window.aion2Watcher and window.aion2Overlay inside the desktop app.
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
-import { getCurrentWindow, LogicalPosition, LogicalSize } from '@tauri-apps/api/window'
+import { availableMonitors, getCurrentWindow, LogicalPosition, LogicalSize, PhysicalPosition } from '@tauri-apps/api/window'
 import { register, unregisterAll } from '@tauri-apps/plugin-global-shortcut'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { DEV_TOOLS } from './devTools'
@@ -13,6 +13,10 @@ const TEST_TOAST_SHORTCUT = 'CommandOrControl+Shift+T'
 const BASE_WIDTH = 420
 const BASE_HEIGHT = 640
 const SCREEN_MARGIN = 16
+
+// The overlay's bottom-right corner in physical pixels: the point the HUD scale keeps in place.
+const CORNER_KEY = 'aion2-overlay-corner'
+const SAVE_DELAY_MS = 500
 
 function subscribe(listeners, callback) {
   listeners.add(callback)
@@ -36,8 +40,48 @@ function installBridge() {
     modeListeners.forEach((callback) => callback(mode))
   }
 
+  // Moves the window back to where it was left, if that spot is still on a screen.
+  async function restorePosition() {
+    try {
+      const corner = JSON.parse(localStorage.getItem(CORNER_KEY))
+      if (!corner) return
+      const onScreen = (await availableMonitors()).some(
+        ({ position: p, size: s }) =>
+          corner.x > p.x && corner.x <= p.x + s.width && corner.y > p.y && corner.y <= p.y + s.height,
+      )
+      if (!onScreen) return
+      const size = await appWindow.outerSize()
+      await appWindow.setPosition(new PhysicalPosition(corner.x - size.width, corner.y - size.height))
+    } catch {
+      // storage unavailable or nothing saved
+    }
+  }
+
+  let saveTimer = null
+  function savePositionSoon() {
+    clearTimeout(saveTimer)
+    saveTimer = setTimeout(async () => {
+      // Windows parks minimized windows far off-screen.
+      if (await appWindow.isMinimized()) return
+      const pos = await appWindow.outerPosition()
+      const size = await appWindow.outerSize()
+      try {
+        localStorage.setItem(CORNER_KEY, JSON.stringify({ x: pos.x + size.width, y: pos.y + size.height }))
+      } catch {
+        // storage unavailable
+      }
+    }, SAVE_DELAY_MS)
+  }
+
+  // The window starts hidden so it doesn't jump from the default spot.
+  const restored = restorePosition().finally(() => {
+    appWindow.show()
+    appWindow.onMoved(savePositionSoon)
+  })
+
   // Resizes the window for the HUD scale, keeping the bottom-right corner in place.
   async function setHudScale(scale) {
+    await restored
     const factor = Math.max(1, scale)
     const width = Math.round(BASE_WIDTH * factor)
     const height = Math.round(Math.min(BASE_HEIGHT * factor, window.screen.availHeight - 2 * SCREEN_MARGIN))

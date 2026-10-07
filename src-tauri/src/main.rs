@@ -2,11 +2,15 @@
 
 mod watcher;
 
+use std::thread;
+use std::time::Duration;
+
 use tauri::{LogicalPosition, Manager, WebviewUrl, WebviewWindowBuilder};
 
 const WINDOW_WIDTH: f64 = 420.0;
 const WINDOW_HEIGHT: f64 = 640.0;
 const SCREEN_MARGIN: f64 = 16.0;
+const SHOW_FALLBACK: Duration = Duration::from_secs(2);
 
 fn bottom_right_of_primary_display(app: &tauri::App) -> Option<LogicalPosition<f64>> {
     let monitor = app.primary_monitor().ok()??;
@@ -29,13 +33,23 @@ fn create_overlay(app: &tauri::App) -> tauri::Result<()> {
         .decorations(false)
         .shadow(false)
         .always_on_top(true)
-        .focused(false);
+        .focused(false)
+        // The frontend shows it once it's back where the user left it.
+        .visible(false);
     if let Some(position) = bottom_right_of_primary_display(app) {
         builder = builder.position(position.x, position.y);
     }
     let window = builder.build()?;
 
     window.set_ignore_cursor_events(true)?;
+
+    // Shown anyway if the frontend never gets to it.
+    thread::spawn(move || {
+        thread::sleep(SHOW_FALLBACK);
+        if !window.is_visible().unwrap_or(true) {
+            let _ = window.show();
+        }
+    });
     Ok(())
 }
 
