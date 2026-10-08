@@ -1,0 +1,12 @@
+{
+  "_readme": [
+    "Hand-maintained fixes on top of the generated regions.json, for what the game's drop tables get wrong.",
+    "Pets are English names as shown in the app. Areas are region names (e.g. Uruthumheim) or whole maps (e.g. Eltnen).",
+    "notFarmable: pets removed from every area (shop pets, event pets).",
+    "remove: pets that don't spawn in an area, per area.",
+    "add: pets that do spawn in an area but are missing, per area."
+  ],
+  "notFarmable": [],
+  "remove": {},
+  "add": {}
+}

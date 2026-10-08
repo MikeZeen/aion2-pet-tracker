@@ -4,7 +4,7 @@ import { isLearnedPet } from '../composables/useMonsterPets'
 import { levelLabel, MAX_TOTAL, progressOf, useSoulCounts } from '../composables/useSoulCounts'
 import { englishPetName, PET_CODES, t } from '../i18n'
 import maps from '../data/maps.json'
-import regionData from '../data/regions.json'
+import regionData from '../data/regionData'
 
 const { state: souls, petInfo } = useSoulCounts()
 

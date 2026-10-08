@@ -3,7 +3,7 @@ import { REGION_NAMES } from './useLocation'
 import { describeGain, MAX_TOTAL, STAGES, useSoulCounts } from './useSoulCounts'
 import { useToasts } from './useToasts'
 import { DEV_TOOLS } from '../devTools'
-import regionData from '../data/regions.json'
+import regionData from '../data/regionData'
 
 // Fake soul toasts and a fake location for testing the overlay without the game.
 // Dev builds only; never touches real progress.

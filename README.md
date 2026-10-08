@@ -43,15 +43,16 @@ There's no installer. To remove the tracker, delete the folder.
 
 ### Which maps are covered
 
-How precise the pet list is depends on the map:
+The pet lists come from the game's drop tables: a pet is listed for an area only if a monster there drops its soul. Shop and event pets are never listed. How precise the list is depends on the map:
 
 | Map | What the list shows |
 |---|---|
 | Verteron, Altgard | The pets of the exact area you're in, e.g. *Pets in Immortal Isle*. |
-| Eltnen, Morheim | All pets of the whole map, e.g. *Pets in Eltnen*. Areas within these maps aren't known yet. |
-| Abyss and everywhere else | *Pets nearby*: only the pets of monsters around you that the tracker knows. |
+| Lower Reshanta (Abyss) | All pets of the whole map, e.g. *Pets in Chaotic Lower Reshanta*. |
+| Eltnen, Morheim | *Pets in Eltnen*: none from the drop tables, as their monsters don't drop pet souls. |
+| Everywhere else | *Pets nearby*: only the pets of monsters around you that the tracker knows. |
 
-The Abyss works differently because the bundled data has no Abyss monsters. The tracker learns them while you play: when you pick up a soul, it remembers which monster dropped it, and from then on that monster's pet appears in the list whenever the monster is near you. The list starts empty in the Abyss ("No pets known for the monsters here yet") and fills in as you collect souls there. These learned links are saved on your computer and kept between sessions.
+On every map, the list also shows the pets of monsters near you whose area isn't known. The tracker also learns monsters it doesn't know while you play: when you pick up a soul, it remembers which monster dropped it, and from then on that monster's pet appears in the list whenever the monster is near you. These learned links are saved on your computer and kept between sessions.
 
 ## Troubleshooting
 
@@ -99,7 +100,7 @@ Both commands bundle the watcher into a standalone `watcher.exe` with PyInstalle
 | Path | Contents |
 | --- | --- |
 | `src/` | Vue frontend: overlay, toasts, settings |
-| `src/data/` | Pet names (all languages), pet and monster IDs, areas |
+| `src/data/` | Pet names (all languages), pet and monster IDs, areas; `pet_overrides.json` holds hand fixes to the area pet lists |
 | `src/i18n/` | Interface translations |
 | `public/portraits/` | Pet portraits |
 | `src-tauri/` | Tauri shell: overlay window, shortcuts, watcher process |

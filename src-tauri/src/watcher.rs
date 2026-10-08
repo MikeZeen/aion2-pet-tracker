@@ -21,6 +21,9 @@ pub struct Watcher(Mutex<Live>);
 struct Live {
     generation: u64,
     child: Option<Child>,
+    /// The last zone event. The game sends the map id only on a map change,
+    /// so a restarted watcher (e.g. after the frontend reloads) is told it again.
+    zone: Option<Value>,
 }
 
 impl Watcher {
@@ -38,6 +41,14 @@ impl Watcher {
         live.generation += 1;
         live.child = Some(child);
         live.generation
+    }
+
+    fn last_zone(&self) -> Option<Value> {
+        self.0.lock().unwrap().zone.clone()
+    }
+
+    fn remember_zone(&self, zone: &Value) {
+        self.0.lock().unwrap().zone = Some(zone.clone());
     }
 
     fn take_if_current(&self, generation: u64) -> Option<Child> {
@@ -113,6 +124,9 @@ pub fn watcher_start(app: AppHandle, watcher: State<'_, Watcher>, character: Str
     let stdout = child.stdout.take().expect("stdout is piped");
     let mut stderr = child.stderr.take().expect("stderr is piped");
     let generation = watcher.replace(child);
+    if let Some(zone) = watcher.last_zone() {
+        let _ = app.emit(EVENT, zone);
+    }
 
     let stderr_reader = thread::spawn(move || {
         let mut text = String::new();
@@ -123,6 +137,9 @@ pub fn watcher_start(app: AppHandle, watcher: State<'_, Watcher>, character: Str
     thread::spawn(move || {
         for line in BufReader::new(stdout).lines().map_while(Result::ok) {
             if let Ok(payload) = serde_json::from_str::<Value>(&line) {
+                if payload["type"] == "zone" {
+                    app.state::<Watcher>().remember_zone(&payload);
+                }
                 let _ = app.emit(EVENT, payload);
             }
         }

@@ -2,7 +2,7 @@ import { reactive } from 'vue'
 import { petOfMonster } from './useMonsterPets'
 import mapTransforms from '../data/map_transforms.json'
 import maps from '../data/maps.json'
-import regionData from '../data/regions.json'
+import regionData from '../data/regionData'
 
 export const REGION_NAMES = Object.keys(regionData.regions)
 
@@ -65,7 +65,9 @@ function wholeMap(mapId) {
 }
 
 export function useLocation() {
+  // A restarted watcher repeats the current map; that keeps the known area.
   function setLiveZone(mapId) {
+    if (mapId === live.mapId) return
     const first = live.mapId == null
     live.mapId = mapId
     live.monsters = []
@@ -110,7 +112,7 @@ export function useLocation() {
     if (live.mapId == null) return []
     const map = wholeMap(live.mapId)
     if (!live.region && !map) return [...new Set(live.monsters.map(petOfMonster).filter(Boolean))]
-    const area = map ? regionData.mapPets[map] : (regionData.regions[live.region]?.pets ?? [])
+    const area = (map ? regionData.mapPets[map] : regionData.regions[live.region]?.pets) ?? []
     const unplaced = live.recent.filter((id) => map || !regionData.monsterRegions[id]).map(petOfMonster)
     return [...new Set([...area, ...unplaced.filter(Boolean)])]
   }
