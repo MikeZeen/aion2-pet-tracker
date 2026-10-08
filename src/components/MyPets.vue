@@ -1,121 +1,232 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { isLearnedPet } from '../composables/useMonsterPets'
-import { levelLabel, MAX_TOTAL, progressOf, useSoulCounts } from '../composables/useSoulCounts'
-import { englishPetName, PET_CODES, t } from '../i18n'
-import maps from '../data/maps.json'
-import regionData from '../data/regionData'
+import { computed, ref } from "vue";
+import { isLearnedPet } from "../composables/useMonsterPets";
+import {
+  levelLabel,
+  MAX_TOTAL,
+  progressOf,
+  useSoulCounts,
+} from "../composables/useSoulCounts";
+import { englishPetName, PET_CODES, t } from "../i18n";
+import maps from "../data/maps.json";
+import petMonsters from "../data/pet_monsters.json";
+import regionData from "../data/regionData";
 
-const { state: souls, petInfo } = useSoulCounts()
+const { state: souls, petInfo } = useSoulCounts();
 
-const FILTERS = ['all', 'progress', 'locked', 'maxed']
-const query = ref('')
-const filter = ref('all')
-const sort = ref('progress')
-const expanded = ref(null)
+const FILTERS = ["all", "progress", "locked", "maxed"];
+const query = ref("");
+const filter = ref("all");
+const sort = ref("progress");
+const expanded = ref(null);
 
-// Pet code -> area names, from the regions and the maps known only as a whole.
+const mapName = (map) =>
+  Object.values(maps).find((m) => m.map === map)?.name ?? map;
+
+// "Dranactus (Altgard)" for a region; a map's name as is.
+function areaLabel(name) {
+  const region = regionData.regions[name];
+  return region ? `${name} (${mapName(region.map)})` : name;
+}
+
+// Areas on a map without regions (e.g. the Abyss) where the pet's monsters are found.
+function subAreas(code, map) {
+  const name = mapName(map);
+  return (petMonsters[code] ?? []).flatMap((m) =>
+    m.areas.filter(([area, on]) => area && on === name).map(([area]) => `${area} (${name})`),
+  );
+}
+
+// Pet code -> area labels: its regions, plus for the maps where none of its
+// regions is known their areas from the monsters, else the map.
 const AREAS = (() => {
-  const areas = {}
-  const add = (code, name) => (areas[code] ??= new Set()).add(name)
-  for (const [name, region] of Object.entries(regionData.regions)) region.pets.forEach((code) => add(code, name))
-  for (const [map, pets] of Object.entries(regionData.mapPets)) {
-    const name = Object.values(maps).find((m) => m.map === map)?.name ?? map
-    pets.forEach((code) => add(code, name))
+  const areas = {};
+  const regionMaps = {};
+  for (const [name, region] of Object.entries(regionData.regions)) {
+    for (const code of region.pets) {
+      (areas[code] ??= new Set()).add(areaLabel(name));
+      (regionMaps[code] ??= new Set()).add(region.map);
+    }
   }
-  return Object.fromEntries(Object.entries(areas).map(([code, names]) => [code, [...names].sort()]))
-})()
+  for (const [map, pets] of Object.entries(regionData.mapPets)) {
+    for (const code of pets) {
+      if (regionMaps[code]?.has(map)) continue;
+      const found = subAreas(code, map);
+      for (const label of found.length ? found : [mapName(map)])
+        (areas[code] ??= new Set()).add(label);
+    }
+  }
+  return Object.fromEntries(
+    Object.entries(areas).map(([code, names]) => [code, [...names].sort()]),
+  );
+})();
 
 const allPets = computed(() =>
   PET_CODES.map((code) => {
-    const total = souls[code]?.total ?? 0
-    const progress = progressOf(total)
-    return { code, total, ...petInfo(code), ...progress, levelText: levelLabel(progress.level) }
+    const total = souls[code]?.total ?? 0;
+    const progress = progressOf(total);
+    return {
+      code,
+      total,
+      ...petInfo(code),
+      ...progress,
+      levelText: levelLabel(progress.level),
+    };
   }),
-)
+);
 
 const summary = computed(() => ({
   unlocked: allPets.value.filter((p) => p.level > 0).length,
   maxed: allPets.value.filter((p) => p.maxed).length,
   total: allPets.value.length,
-}))
+}));
 
 function matchesFilter(p) {
   switch (filter.value) {
-    case 'progress':
-      return !p.maxed && p.total > 0
-    case 'locked':
-      return p.level === 0
-    case 'maxed':
-      return p.maxed
+    case "progress":
+      return !p.maxed && p.total > 0;
+    case "locked":
+      return p.level === 0;
+    case "maxed":
+      return p.maxed;
     default:
-      return true
+      return true;
   }
 }
 
 // Matches the current language's name or the English one.
 const pets = computed(() => {
-  const q = query.value.trim().toLowerCase()
+  const q = query.value.trim().toLowerCase();
   return allPets.value
     .filter((p) => matchesFilter(p))
-    .filter((p) => !q || p.name.toLowerCase().includes(q) || englishPetName(p.code).toLowerCase().includes(q))
-    .sort((a, b) =>
-      sort.value === 'name' ? a.name.localeCompare(b.name) : b.total - a.total || a.name.localeCompare(b.name),
+    .filter(
+      (p) =>
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        englishPetName(p.code).toLowerCase().includes(q),
     )
-})
+    .sort((a, b) =>
+      sort.value === "name"
+        ? a.name.localeCompare(b.name)
+        : b.total - a.total || a.name.localeCompare(b.name),
+    );
+});
 
 function sourcesOf(code) {
-  const areas = AREAS[code] ?? []
-  return { areas, learned: !areas.length && isLearnedPet(code) }
+  const areas = AREAS[code] ?? [];
+  return { areas, learned: !areas.length && isLearnedPet(code) };
+}
+
+// Monsters dropping the pet's soul, e.g. { name: 'Brax', level: 'Lv 20/32', areas: [...] }.
+function monstersOf(code) {
+  return (petMonsters[code] ?? []).map((m) => ({
+    ...m,
+    level: `Lv ${m.levels.join("/")}`,
+    areas: m.areas.map(([area, map]) => (area ? `${area} (${map})` : map)),
+  }));
 }
 
 function toggle(code) {
-  expanded.value = expanded.value === code ? null : code
+  expanded.value = expanded.value === code ? null : code;
 }
 
 function hideBrokenIcon(event) {
-  event.target.style.visibility = 'hidden'
+  event.target.style.visibility = "hidden";
 }
 </script>
 
 <template>
   <div class="panel my-pets">
-    <h3>{{ t('pets.title') }}</h3>
-    <p class="hint">{{ t('pets.summary', summary) }}</p>
+    <h3>{{ t("pets.title") }}</h3>
+    <p class="hint">{{ t("pets.summary", summary) }}</p>
 
-    <input v-model="query" class="search" type="search" :placeholder="t('pets.search')" />
+    <input
+      v-model="query"
+      class="search"
+      type="search"
+      :placeholder="t('pets.search')"
+    />
 
     <div class="controls">
       <div class="segmented">
-        <button v-for="f in FILTERS" :key="f" :class="{ selected: filter === f }" @click="filter = f">
+        <button
+          v-for="f in FILTERS"
+          :key="f"
+          :class="{ selected: filter === f }"
+          @click="filter = f"
+        >
           {{ t(`pets.filter.${f}`) }}
         </button>
       </div>
       <select v-model="sort" class="select">
-        <option value="progress">{{ t('pets.sort.progress') }}</option>
-        <option value="name">{{ t('pets.sort.name') }}</option>
+        <option value="progress">{{ t("pets.sort.progress") }}</option>
+        <option value="name">{{ t("pets.sort.name") }}</option>
       </select>
     </div>
 
     <div class="list">
-      <div v-for="p in pets" :key="p.code" class="entry" :class="{ open: expanded === p.code }">
-        <button class="pet" :class="{ maxed: p.maxed, locked: p.level === 0 }" @click="toggle(p.code)">
-          <img v-if="p.icon" class="portrait" :src="p.icon" alt="" @error="hideBrokenIcon" />
+      <div
+        v-for="p in pets"
+        :key="p.code"
+        class="entry"
+        :class="{ open: expanded === p.code }"
+      >
+        <button
+          class="pet"
+          :class="{ maxed: p.maxed, locked: p.level === 0 }"
+          @click="toggle(p.code)"
+        >
+          <img
+            v-if="p.icon"
+            class="portrait"
+            :src="p.icon"
+            alt=""
+            @error="hideBrokenIcon"
+          />
           <span class="name">{{ p.name }}</span>
           <span class="level">{{ p.levelText }}</span>
-          <span class="bar"><span class="fill" :style="{ width: (p.count / p.needed) * 100 + '%' }" /></span>
+          <span class="bar"
+            ><span
+              class="fill"
+              :style="{ width: (p.count / p.needed) * 100 + '%' }"
+          /></span>
           <span class="count">{{ p.count }}/{{ p.needed }}</span>
         </button>
         <div v-if="expanded === p.code" class="details">
-          <div>{{ t('pets.totalSouls', { n: p.total, max: MAX_TOTAL }) }}</div>
-          <div class="label">{{ t('pets.areas') }}</div>
+          <div class="label">{{ t("pets.areas") }}</div>
           <div v-if="sourcesOf(p.code).areas.length" class="areas">
-            <span v-for="area in sourcesOf(p.code).areas" :key="area" class="area">{{ area }}</span>
+            <span
+              v-for="area in sourcesOf(p.code).areas"
+              :key="area"
+              class="area"
+              >{{ area }}</span
+            >
           </div>
-          <div v-else class="muted">{{ t(sourcesOf(p.code).learned ? 'pets.learned' : 'pets.noArea') }}</div>
+          <div v-else class="muted">
+            {{ t(sourcesOf(p.code).learned ? "pets.learned" : "pets.noArea") }}
+          </div>
+          <template v-if="monstersOf(p.code).length">
+            <div class="label">{{ t("pets.droppedBy") }}</div>
+            <details
+              v-for="m in monstersOf(p.code)"
+              :key="m.name"
+              class="monster"
+            >
+              <summary>
+                <span class="monster-name">{{ m.name }}</span>
+                <span class="muted">{{ m.level }}</span>
+              </summary>
+              <div v-if="m.areas.length" class="areas">
+                <span v-for="area in m.areas" :key="area" class="area">{{
+                  area
+                }}</span>
+              </div>
+              <div v-else class="muted">{{ t("pets.monsterNoArea") }}</div>
+            </details>
+          </template>
         </div>
       </div>
-      <p v-if="!pets.length" class="muted empty">{{ t('pets.empty') }}</p>
+      <p v-if="!pets.length" class="muted empty">{{ t("pets.empty") }}</p>
     </div>
   </div>
 </template>
@@ -299,6 +410,45 @@ function hideBrokenIcon(event) {
   padding: 0.05rem 0.45rem;
   border: 1px solid var(--border);
   border-radius: 999px;
+}
+
+.monster {
+  margin-top: 0.2rem;
+}
+
+.monster summary {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.monster summary::-webkit-details-marker {
+  display: none;
+}
+
+.monster summary::before {
+  content: "▸";
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.monster[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.monster-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monster .areas,
+.monster > .muted {
+  margin: 0.2rem 0 0.3rem 1rem;
 }
 
 .muted {

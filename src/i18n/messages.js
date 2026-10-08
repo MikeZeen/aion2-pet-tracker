@@ -116,6 +116,8 @@ export const MESSAGES = {
     'pets.areas': "Found in",
     'pets.noArea': "No known area yet",
     'pets.learned': "Learned from your soul drops",
+    'pets.droppedBy': "Dropped by",
+    'pets.monsterNoArea': "Area unknown",
   },
 
   de: {
@@ -223,6 +225,8 @@ export const MESSAGES = {
     'pets.areas': "Zu finden in",
     'pets.noArea': "Noch kein Gebiet bekannt",
     'pets.learned': "Aus deinen Seelenfunden gelernt",
+    'pets.droppedBy': "Gedroppt von",
+    'pets.monsterNoArea': "Gebiet unbekannt",
   },
 
   fr: {
@@ -330,6 +334,8 @@ export const MESSAGES = {
     'pets.areas': "Se trouve à",
     'pets.noArea': "Aucune zone connue pour le moment",
     'pets.learned': "Appris à partir de vos âmes ramassées",
+    'pets.droppedBy': "Lâchée par",
+    'pets.monsterNoArea': "Zone inconnue",
   },
 
   es: {
@@ -437,6 +443,8 @@ export const MESSAGES = {
     'pets.areas': "Se encuentra en",
     'pets.noArea': "Aún no se conoce ninguna zona",
     'pets.learned': "Aprendido de tus almas recogidas",
+    'pets.droppedBy': "Soltada por",
+    'pets.monsterNoArea': "Zona desconocida",
   },
 
   pt: {
@@ -544,6 +552,8 @@ export const MESSAGES = {
     'pets.areas': "Encontrado em",
     'pets.noArea': "Nenhuma área conhecida ainda",
     'pets.learned': "Aprendido com as almas que você coletou",
+    'pets.droppedBy': "Derrubada por",
+    'pets.monsterNoArea': "Área desconhecida",
   },
 
   ru: {
@@ -651,6 +661,8 @@ export const MESSAGES = {
     'pets.areas': "Где найти",
     'pets.noArea': "Область пока неизвестна",
     'pets.learned': "Определено по собранным вами душам",
+    'pets.droppedBy': "Выпадает из",
+    'pets.monsterNoArea': "Область неизвестна",
   },
 
   ko: {
@@ -757,6 +769,8 @@ export const MESSAGES = {
     'pets.areas': "출현 지역",
     'pets.noArea': "아직 알려진 지역이 없습니다",
     'pets.learned': "획득한 소울로 알아낸 정보",
+    'pets.droppedBy': "드롭 몬스터",
+    'pets.monsterNoArea': "지역 미확인",
   },
 
   ja: {
@@ -863,6 +877,8 @@ export const MESSAGES = {
     'pets.areas': "出現地域",
     'pets.noArea': "既知の地域はまだありません",
     'pets.learned': "入手したソウルから判明",
+    'pets.droppedBy': "ドロップするモンスター",
+    'pets.monsterNoArea': "地域不明",
   },
 
   zh: {
@@ -968,5 +984,7 @@ export const MESSAGES = {
     'pets.areas': "出現地區",
     'pets.noArea': "尚無已知地區",
     'pets.learned': "從你拾取的靈魂得知",
+    'pets.droppedBy': "掉落怪物",
+    'pets.monsterNoArea': "地區不明",
   },
 }
